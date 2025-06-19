@@ -1,10 +1,15 @@
+"use client";
+
 import { FilesIcon } from "lucide-react";
 import Link from "next/link";
 import { NavLink } from "../ui/NavLink";
 import { Button } from "../ui/Button";
+import { UserButton, useAuth } from "@clerk/nextjs";
 
 export function Header() {
-  // Sesuaikan navItems dengan id section yang ada di project
+  const { userId } = useAuth();
+  const isSignedIn = !!userId;
+
   const navItems = [
     { href: "#features", label: "Features" },
     { href: "#how-it-works", label: "How It Works" },
@@ -31,13 +36,33 @@ export function Header() {
           </ul>
         </nav>
 
-        <Button
-          href="/compress"
-          variant="primary"
-          className="py-2 px-5 text-base"
-        >
-          Login
-        </Button>
+        <div className="flex items-center space-x-4">
+          {isSignedIn ? (
+            <>
+              <Button
+                href="/dashboard"
+                variant="secondary"
+                className="py-2 px-5 text-base"
+              >
+                Dashboard
+              </Button>
+              <UserButton afterSignOutUrl="/" />
+            </>
+          ) : (
+            <>
+              <NavLink href="/sign-in" className="py-2">
+                Sign In
+              </NavLink>
+              <Button
+                href="/sign-up"
+                variant="primary"
+                className="py-2 px-5 text-base"
+              >
+                Sign Up
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );
