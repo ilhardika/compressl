@@ -2,7 +2,6 @@ import { Button } from "../components/ui/Button";
 import {
   X,
   Download,
-  RefreshCw,
   Image as ImageIcon,
   ChevronDown,
   ChevronUp,
@@ -14,16 +13,16 @@ interface Props {
   imageItems: ImageItem[];
   formatFileSize: (bytes: number | undefined) => string;
   removeImage: (id: string) => void;
-  compressImage: (item: ImageItem) => void;
   downloadImage: (item: ImageItem) => void;
+  downloadAllImages: () => void;
 }
 
 export function OutputImages({
   imageItems,
   formatFileSize,
   removeImage,
-  compressImage,
   downloadImage,
+  downloadAllImages,
 }: Props) {
   // Map untuk menyimpan state expanded untuk masing-masing item
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
@@ -39,8 +38,26 @@ export function OutputImages({
 
   if (imageItems.length === 0) return null;
 
+  // Filter hanya menampilkan item yang sudah dikompresi
+  const compressedItems = imageItems.filter((item) => item.status === "compressed");
+  const hasCompressedItems = compressedItems.length > 0;
+
   return (
     <div className="space-y-4">
+      {/* Download All Button at top */}
+      {hasCompressedItems && (
+        <div className="mb-4">
+          <Button
+            onClick={downloadAllImages}
+            variant="primary"
+            className="w-full justify-center bg-green-600 hover:bg-green-700"
+          >
+            <Download className="mr-2 h-5 w-5" />
+            Download All Images ({compressedItems.length})
+          </Button>
+        </div>
+      )}
+
       {imageItems.map((item) => (
         <div
           key={item.id}
@@ -58,7 +75,7 @@ export function OutputImages({
               {item.file.name}
             </div>
             <div className="flex items-center">
-              {/* Status indicator dot (smaller version of badge) */}
+              {/* Status indicator dot */}
               <div
                 className={`w-2 h-2 rounded-full mr-2 ${
                   item.status === "compressed"
@@ -167,7 +184,7 @@ export function OutputImages({
                       <div className="rounded-full bg-gray-100 p-3 mb-2">
                         <ImageIcon size={24} className="text-gray-400" />
                       </div>
-                      <div className="text-sm">Ready to compress</div>
+                      <div className="text-sm">Waiting for compression</div>
                     </div>
                   )}
                 </div>
@@ -188,7 +205,7 @@ export function OutputImages({
                     {formatFileSize(item.compressedSize)}
                   </span>
 
-                  {/* Status Badge - Moved here */}
+                  {/* Status Badge */}
                   <div className="ml-2 text-xs py-1 px-2 rounded-full font-medium bg-green-100 text-green-700">
                     {item.compressionPercent}% smaller
                   </div>
@@ -211,34 +228,18 @@ export function OutputImages({
               )}
             </div>
 
-            <div>
-              {item.status === "compressed" ? (
-                <Button
-                  onClick={() => downloadImage(item)}
-                  variant="primary"
-                  className="justify-center bg-green-600 hover:bg-green-700 py-1.5"
-                  size="sm"
-                >
-                  <Download className="mr-1 h-4 w-4" />
-                  Download
-                </Button>
-              ) : item.status === "error" || item.status === "pending" ? (
-                <Button
-                  onClick={() => compressImage(item)}
-                  className="justify-center py-1.5"
-                  disabled={item.status === "processing"}
-                  size="sm"
-                >
-                  <RefreshCw className="mr-1 h-4 w-4" />
-                  {item.status === "error" ? "Retry" : "Compress"}
-                </Button>
-              ) : (
-                <Button disabled className="justify-center py-1.5" size="sm">
-                  <div className="animate-spin h-4 w-4 mr-1 border-2 border-white border-t-transparent rounded-full"></div>
-                  Processing...
-                </Button>
-              )}
-            </div>
+            {/* Download button only for compressed items */}
+            {item.status === "compressed" && (
+              <Button
+                onClick={() => downloadImage(item)}
+                variant="primary"
+                className="justify-center bg-green-600 hover:bg-green-700 py-1.5"
+                size="sm"
+              >
+                <Download className="mr-1 h-4 w-4" />
+                Download
+              </Button>
+            )}
           </div>
         </div>
       ))}

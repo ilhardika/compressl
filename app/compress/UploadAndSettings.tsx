@@ -160,17 +160,6 @@ export function UploadAndSettings({
                 </>
               )}
             </Button>
-            
-            {imageItems.some((item) => item.status === "compressed") && (
-              <Button
-                onClick={downloadAllImages}
-                variant="secondary"
-                className="w-full justify-center mt-3 bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Download className="mr-2 h-5 w-5" />
-                Download All Images
-              </Button>
-            )}
           </div>
         </div>
       )}

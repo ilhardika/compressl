@@ -180,27 +180,25 @@ export default function MultiCompressComponent() {
 
     if (compressedItems.length === 0) return;
 
-    if (compressedItems.length === 1) {
-      downloadImage(compressedItems[0]);
-      return;
-    }
-
-    // Jika > 1 gambar, buat zip
-    const zip = new JSZip();
-
+    // Untuk semua gambar, download satu per satu (tanpa zip)
     compressedItems.forEach((item) => {
       if (!item.compressedFile) return;
 
+      // Download file langsung
       const extension = item.file.name.split(".").pop() || "jpg";
       const nameWithoutExtension = item.file.name.replace(/\.[^/.]+$/, "");
       const fileName = `${nameWithoutExtension}_compressed.${extension}`;
 
-      zip.file(fileName, item.compressedFile);
-    });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(item.compressedFile);
+      link.download = fileName;
+      link.click();
 
-    // Generate dan download zip
-    const zipBlob = await zip.generateAsync({ type: "blob" });
-    saveAs(zipBlob, "compressed_images.zip");
+      // Beri jeda sedikit agar browser tidak kewalahan
+      setTimeout(() => {
+        URL.revokeObjectURL(link.href);
+      }, 100);
+    });
   };
 
   // ===== IMAGE MANAGEMENT =====
@@ -294,8 +292,8 @@ export default function MultiCompressComponent() {
                   imageItems={imageItems}
                   formatFileSize={formatFileSize}
                   removeImage={removeImage}
-                  compressImage={compressImage}
                   downloadImage={downloadImage}
+                  downloadAllImages={downloadAllImages} // tambahkan prop ini
                 />
               )}
             </div>
