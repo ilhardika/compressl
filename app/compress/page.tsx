@@ -1,4 +1,4 @@
-import CompressComponent from "../components/CompressComponent";
+import MultiCompressComponent from "./MultiCompressComponent";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -23,7 +23,7 @@ export default function CompressPage() {
       </div>
 
       {/* Card container with white background and shadow */}
-      <CompressComponent />
+      <MultiCompressComponent />
     </div>
   );
 }

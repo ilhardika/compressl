@@ -1,0 +1,245 @@
+"use client";
+
+import { useState, useRef } from "react";
+import imageCompression from "browser-image-compression";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import { UploadAndSettings } from "./UploadAndSettings";
+import { OutputImages } from "./OutputImages";
+import { ImageItem } from "./types";
+
+// Interface untuk item gambar
+interface ImageItem {
+  id: string;
+  file: File;
+  originalPreview: string;
+  originalSize: number;
+  compressedFile?: File;
+  compressedPreview?: string;
+  compressedSize?: number;
+  compressionPercent?: number;
+  status: "pending" | "processing" | "compressed" | "error";
+  errorMessage?: string;
+}
+
+export default function MultiCompressComponent() {
+  // ===== STATE MANAGEMENT =====
+  const [imageItems, setImageItems] = useState<ImageItem[]>([]);
+  const [quality, setQuality] = useState<number>(80);
+  const [isProcessingAll, setIsProcessingAll] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ===== UTILITY FUNCTIONS =====
+
+  // Generate unique ID
+  const generateId = () =>
+    `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // Format file size untuk display
+  const formatFileSize = (bytes: number | undefined) => {
+    if (bytes === undefined) return "0 Bytes";
+    if (bytes === 0) return "0 Bytes";
+
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  // ===== FILE HANDLING =====
+
+  // Tambahkan file gambar ke state
+  const addImageFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith("image/")) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newItem: ImageItem = {
+          id: generateId(),
+          file,
+          originalPreview: e.target?.result as string,
+          originalSize: file.size,
+          status: "pending",
+        };
+
+        setImageItems((prev) => [...prev, newItem]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handler untuk input file
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    addImageFiles(e.target.files);
+    // Reset input agar event fire lagi jika user memilih file yang sama
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // Handler untuk drag & drop
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    addImageFiles(e.dataTransfer.files);
+  };
+
+  // ===== COMPRESSION FUNCTIONS =====
+
+  // Kompresi satu gambar
+  const compressImage = async (item: ImageItem) => {
+    try {
+      // Update status menjadi processing
+      setImageItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, status: "processing" } : i))
+      );
+
+      // Opsi kompresi
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        initialQuality: quality / 100,
+      };
+
+      // Proses kompresi
+      const compressedFile = await imageCompression(item.file, options);
+
+      // Buat preview untuk file hasil kompresi
+      const reader = new FileReader();
+      reader.readAsDataURL(compressedFile);
+
+      return new Promise<Partial<ImageItem>>((resolve) => {
+        reader.onload = () => {
+          const compressionPercent = Math.round(
+            (1 - compressedFile.size / item.originalSize) * 100
+          );
+
+          resolve({
+            compressedFile,
+            compressedPreview: reader.result as string,
+            compressedSize: compressedFile.size,
+            compressionPercent,
+            status: "compressed",
+          });
+        };
+      });
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      return {
+        status: "error",
+        errorMessage: "Failed to compress image",
+      };
+    }
+  };
+
+  // Kompresi semua gambar
+  const compressAllImages = async () => {
+    const pendingItems = imageItems.filter(
+      (item) => item.status === "pending" || item.status === "error"
+    );
+
+    if (pendingItems.length === 0) return;
+
+    setIsProcessingAll(true);
+
+    for (const item of pendingItems) {
+      const result = await compressImage(item);
+
+      setImageItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, ...result } : i))
+      );
+    }
+
+    setIsProcessingAll(false);
+  };
+
+  // ===== DOWNLOAD FUNCTIONS =====
+
+  // Download satu gambar
+  const downloadImage = (item: ImageItem) => {
+    if (!item.compressedFile) return;
+
+    // Gunakan extension file asli jika ada
+    const extension = item.file.name.split(".").pop() || "jpg";
+    const nameWithoutExtension = item.file.name.replace(/\.[^/.]+$/, "");
+    const fileName = `${nameWithoutExtension}_compressed.${extension}`;
+
+    // Download file
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(item.compressedFile);
+    link.download = fileName;
+    link.click();
+  };
+
+  // Download semua gambar yang sudah terkompresi
+  const downloadAllImages = async () => {
+    const compressedItems = imageItems.filter(
+      (item) => item.status === "compressed" && item.compressedFile
+    );
+
+    if (compressedItems.length === 0) return;
+
+    if (compressedItems.length === 1) {
+      downloadImage(compressedItems[0]);
+      return;
+    }
+
+    // Jika > 1 gambar, buat zip
+    const zip = new JSZip();
+
+    compressedItems.forEach((item) => {
+      if (!item.compressedFile) return;
+
+      const extension = item.file.name.split(".").pop() || "jpg";
+      const nameWithoutExtension = item.file.name.replace(/\.[^/.]+$/, "");
+      const fileName = `${nameWithoutExtension}_compressed.${extension}`;
+
+      zip.file(fileName, item.compressedFile);
+    });
+
+    // Generate dan download zip
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    saveAs(zipBlob, "compressed_images.zip");
+  };
+
+  // ===== IMAGE MANAGEMENT =====
+
+  // Hapus satu gambar
+  const removeImage = (id: string) => {
+    setImageItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Hapus semua gambar
+  const clearAllImages = () => {
+    setImageItems([]);
+  };
+
+  // ===== RENDER UI =====
+  return (
+    <div className="w-full flex flex-col md:flex-row gap-8">
+      <div className="md:w-1/2">
+        <UploadAndSettings
+          imageItems={imageItems}
+          quality={quality}
+          setQuality={setQuality}
+          isProcessingAll={isProcessingAll}
+          fileInputRef={fileInputRef}
+          handleFileChange={handleFileChange}
+          handleDrop={handleDrop}
+          clearAllImages={clearAllImages}
+          compressAllImages={compressAllImages}
+          downloadAllImages={downloadAllImages}
+        />
+      </div>
+      <div className="md:w-1/2">
+        <OutputImages
+          imageItems={imageItems}
+          formatFileSize={formatFileSize}
+          removeImage={removeImage}
+          compressImage={compressImage}
+          downloadImage={downloadImage}
+        />
+      </div>
+    </div>
+  );
+}
