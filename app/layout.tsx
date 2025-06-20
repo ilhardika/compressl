@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className="scroll-smooth">
-        <body className={`${inter.className} antialiased`}>
+        <body className={`${inter.className} antialiased bg-white`}>
           <Header />
           {children}
           <Footer />

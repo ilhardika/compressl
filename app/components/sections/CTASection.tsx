@@ -1,5 +1,6 @@
 import { Upload } from "lucide-react";
 import { Button } from "../ui/Button";
+import Link from "next/link";
 
 export function CTASection() {
   return (
@@ -14,10 +15,12 @@ export function CTASection() {
               Join thousands of professionals who trust Compressly for their
               image optimization needs.
             </p>
-            <Button href="/compress" variant="white">
-              <Upload size={20} className="mr-2" />
-              Start for Free — No Signup Required
-            </Button>
+            <Link href="/compress">
+              <Button variant="white">
+                <Upload size={20} className="mr-2" />
+                Start for Free — No Signup Required
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

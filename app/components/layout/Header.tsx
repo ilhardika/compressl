@@ -40,11 +40,11 @@ export function Header() {
           {isSignedIn ? (
             <>
               <Button
-                href="/dashboard"
+                href="/compress"
                 variant="secondary"
                 className="py-2 px-5 text-base"
               >
-                Dashboard
+                Compress
               </Button>
               <UserButton afterSignOutUrl="/" />
             </>

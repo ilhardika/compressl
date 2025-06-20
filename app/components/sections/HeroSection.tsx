@@ -1,9 +1,13 @@
 import { Upload, FileImage } from "lucide-react";
 import { Button } from "../ui/Button";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
-    <section id="feature" className="w-full py-20 md:py-32 bg-gradient-to-br from-blue-50 to-white">
+    <section
+      id="feature"
+      className="w-full py-20 md:py-32 bg-gradient-to-br from-blue-50 to-white"
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-10 md:mb-0">
           <h1 className="text-5xl md:text-6xl font-extrabold text-blue-600 tracking-tight mb-6">
@@ -18,11 +22,13 @@ export function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button href="/compress" variant="primary">
-              <Upload size={20} className="mr-2" />
-              Start Compressing
-            </Button>
-            <Button href="#how-it-works" variant="secondary">
+            <Link href="/compress" className="w-full sm:w-auto">
+              <Button variant="primary">
+                <Upload size={20} className="mr-2" />
+                Start Compressing
+              </Button>
+            </Link>
+            <Button href="#features" variant="secondary">
               Learn More
             </Button>
           </div>
