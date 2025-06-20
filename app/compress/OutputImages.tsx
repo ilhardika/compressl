@@ -39,7 +39,9 @@ export function OutputImages({
   if (imageItems.length === 0) return null;
 
   // Filter hanya menampilkan item yang sudah dikompresi
-  const compressedItems = imageItems.filter((item) => item.status === "compressed");
+  const compressedItems = imageItems.filter(
+    (item) => item.status === "compressed"
+  );
   const hasCompressedItems = compressedItems.length > 0;
 
   return (

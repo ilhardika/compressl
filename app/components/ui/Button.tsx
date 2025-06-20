@@ -72,3 +72,11 @@ export function Button(props: ButtonProps) {
     </button>
   );
 }
+
+// Jika kode di atas sudah menghapus prop compressImage, maka tidak perlu parameter ini
+export function OutputImages({
+  // ...
+  compressImage, // <-- HAPUS INI
+}: Props) {
+  // ...
+}

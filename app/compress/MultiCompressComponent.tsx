@@ -2,26 +2,10 @@
 
 import { useState, useRef } from "react";
 import imageCompression from "browser-image-compression";
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
 import { UploadAndSettings } from "./UploadAndSettings";
 import { OutputImages } from "./OutputImages";
 import { ImageItem } from "./types";
 import { ArrowRight } from "lucide-react";
-
-// Interface untuk item gambar
-interface ImageItem {
-  id: string;
-  file: File;
-  originalPreview: string;
-  originalSize: number;
-  compressedFile?: File;
-  compressedPreview?: string;
-  compressedSize?: number;
-  compressionPercent?: number;
-  status: "pending" | "processing" | "compressed" | "error";
-  errorMessage?: string;
-}
 
 export default function MultiCompressComponent() {
   // ===== STATE MANAGEMENT =====
@@ -220,8 +204,8 @@ export default function MultiCompressComponent() {
         Image Compression Tool
       </h1>
       <p className="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
-        Optimize your images with our simple compression tool. Upload, adjust settings,
-        and download high-quality compressed images within seconds.
+        Optimize your images with our simple compression tool. Upload, adjust
+        settings, and download high-quality compressed images within seconds.
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative">
@@ -231,10 +215,14 @@ export default function MultiCompressComponent() {
             <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
                 <h2 className="text-xl font-bold text-white flex items-center">
-                  <span className="bg-white text-blue-600 rounded-full h-7 w-7 inline-flex items-center justify-center mr-2 text-sm">1</span>
+                  <span className="bg-white text-blue-600 rounded-full h-7 w-7 inline-flex items-center justify-center mr-2 text-sm">
+                    1
+                  </span>
                   Upload & Settings
                 </h2>
-                <p className="text-blue-100 text-sm">Add your images and customize compression options</p>
+                <p className="text-blue-100 text-sm">
+                  Add your images and customize compression options
+                </p>
               </div>
               <div className="p-6">
                 <UploadAndSettings
@@ -247,7 +235,6 @@ export default function MultiCompressComponent() {
                   handleDrop={handleDrop}
                   clearAllImages={clearAllImages}
                   compressAllImages={compressAllImages}
-                  downloadAllImages={downloadAllImages}
                 />
               </div>
             </div>
@@ -273,10 +260,14 @@ export default function MultiCompressComponent() {
           <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 h-full">
             <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
               <h2 className="text-xl font-bold text-white flex items-center">
-                <span className="bg-white text-green-600 rounded-full h-7 w-7 inline-flex items-center justify-center mr-2 text-sm">2</span>
+                <span className="bg-white text-green-600 rounded-full h-7 w-7 inline-flex items-center justify-center mr-2 text-sm">
+                  2
+                </span>
                 Results & Download
               </h2>
-              <p className="text-green-100 text-sm">View and download your compressed images</p>
+              <p className="text-green-100 text-sm">
+                View and download your compressed images
+              </p>
             </div>
             <div className="p-6">
               {imageItems.length === 0 ? (
@@ -284,7 +275,9 @@ export default function MultiCompressComponent() {
                   <div className="w-24 h-24 border-4 border-dashed rounded-full flex items-center justify-center mb-4">
                     <ArrowRight size={32} />
                   </div>
-                  <p className="text-lg font-medium">Your compressed images will appear here</p>
+                  <p className="text-lg font-medium">
+                    Your compressed images will appear here
+                  </p>
                   <p className="text-sm mt-2">Upload an image to get started</p>
                 </div>
               ) : (
@@ -293,7 +286,7 @@ export default function MultiCompressComponent() {
                   formatFileSize={formatFileSize}
                   removeImage={removeImage}
                   downloadImage={downloadImage}
-                  downloadAllImages={downloadAllImages} // tambahkan prop ini
+                  downloadAllImages={downloadAllImages}
                 />
               )}
             </div>

@@ -58,17 +58,21 @@ export function HeroSection() {
             Fast, secure, and completely free.
           </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/compress" className="w-full sm:w-auto">
               <Button variant="primary" className="w-full sm:w-auto">
-              <Upload size={20} className="mr-2" />
-              Start Compressing
+                <Upload size={20} className="mr-2" />
+                Start Compressing
               </Button>
             </Link>
-            <Button href="#features" variant="secondary" className="w-full sm:w-auto">
+            <Button
+              href="#features"
+              variant="secondary"
+              className="w-full sm:w-auto"
+            >
               Learn More
             </Button>
-            </div>
+          </div>
         </div>
 
         {/* Image - For desktop, appears right */}

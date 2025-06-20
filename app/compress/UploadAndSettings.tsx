@@ -14,7 +14,6 @@ interface Props {
   handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   clearAllImages: () => void;
   compressAllImages: () => void;
-  downloadAllImages: () => void;
 }
 
 export function UploadAndSettings({
@@ -27,7 +26,6 @@ export function UploadAndSettings({
   handleDrop,
   clearAllImages,
   compressAllImages,
-  downloadAllImages,
 }: Props) {
   return (
     <div className="space-y-6">
