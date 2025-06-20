@@ -1,7 +1,14 @@
 import { Button } from "../components/ui/Button";
-import { X, Download, FileImage, Image as ImageIcon } from "lucide-react";
+import {
+  X,
+  Download,
+  RefreshCw,
+  Image as ImageIcon,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { ImageItem } from "./types";
-import React from "react";
+import React, { useState } from "react";
 
 interface Props {
   imageItems: ImageItem[];
@@ -18,112 +25,220 @@ export function OutputImages({
   compressImage,
   downloadImage,
 }: Props) {
+  // Map untuk menyimpan state expanded untuk masing-masing item
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
+    {}
+  );
+
+  const toggleItem = (id: string) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
   if (imageItems.length === 0) return null;
+
   return (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="space-y-4">
       {imageItems.map((item) => (
         <div
           key={item.id}
-          className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+          className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm transition-all duration-200"
         >
-          {/* IMAGE HEADER */}
-          <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-            <div className="font-medium text-gray-900 truncate max-w-[80%]">
+          {/* IMAGE HEADER - Always visible */}
+          <div
+            className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+            onClick={() => toggleItem(item.id)}
+          >
+            <div className="font-medium text-gray-800 truncate max-w-[80%] flex items-center">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
+                <ImageIcon size={14} className="text-blue-600" />
+              </div>
               {item.file.name}
             </div>
-            <button
-              onClick={() => removeImage(item.id)}
-              className="text-gray-500 hover:text-red-500 transition-colors"
-            >
-              <X size={18} />
-            </button>
-          </div>
-          {/* IMAGE COMPARISON */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-            {/* Original Image */}
-            <div className="space-y-2">
-              <div className="text-sm font-medium text-gray-700">Original</div>
-              <div className="bg-gray-50 aspect-video rounded-md overflow-hidden flex items-center justify-center">
-                <img
-                  src={item.originalPreview}
-                  alt="Original"
-                  className="max-h-full max-w-full object-contain"
-                />
-              </div>
-              <div className="text-sm text-gray-600">
-                Size: {formatFileSize(item.originalSize)}
-              </div>
+            <div className="flex items-center">
+              {/* Status indicator dot (smaller version of badge) */}
+              <div
+                className={`w-2 h-2 rounded-full mr-2 ${
+                  item.status === "compressed"
+                    ? "bg-green-500"
+                    : item.status === "processing"
+                    ? "bg-blue-500"
+                    : item.status === "error"
+                    ? "bg-red-500"
+                    : "bg-gray-400"
+                }`}
+              ></div>
+
+              {/* Toggle Button */}
+              <button className="p-1 rounded-full hover:bg-gray-200 transition-colors">
+                {expandedItems[item.id] ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
+              </button>
+
+              {/* Delete Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeImage(item.id);
+                }}
+                className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 ml-1"
+                title="Remove image"
+              >
+                <X size={16} />
+              </button>
             </div>
-            {/* Compressed Image */}
-            <div className="space-y-2">
-              <div className="text-sm font-medium text-gray-700">
-                Compressed
-              </div>
-              <div className="bg-gray-50 aspect-video rounded-md overflow-hidden flex items-center justify-center">
-                {item.status === "compressed" && item.compressedPreview ? (
+          </div>
+
+          {/* IMAGE COMPARISON - Collapsible */}
+          {expandedItems[item.id] && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-white">
+              {/* Original Image */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-gray-700 flex items-center">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
+                    Original
+                  </div>
+                  <div className="text-xs text-gray-500 py-0.5 px-2 bg-gray-100 rounded-full">
+                    {formatFileSize(item.originalSize)}
+                  </div>
+                </div>
+                <div className="bg-[#f8fafc] rounded-lg overflow-hidden flex items-center justify-center border border-gray-100 aspect-video">
                   <img
-                    src={item.compressedPreview}
-                    alt="Compressed"
+                    src={item.originalPreview}
+                    alt="Original"
                     className="max-h-full max-w-full object-contain"
                   />
-                ) : item.status === "processing" ? (
-                  <div className="flex flex-col items-center text-gray-400">
-                    <div className="animate-spin h-8 w-8 mb-2 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                    <div className="text-sm">Processing...</div>
-                  </div>
-                ) : item.status === "error" ? (
-                  <div className="flex flex-col items-center text-red-500">
-                    <div className="mb-1">Error</div>
-                    <div className="text-xs">{item.errorMessage}</div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center text-gray-400">
-                    <ImageIcon size={32} className="mb-2" />
-                    <div className="text-sm">Siap dikompres</div>
-                  </div>
-                )}
-              </div>
-              {/* SIZE INFO */}
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-gray-600">
-                  {item.compressedSize
-                    ? `Size: ${formatFileSize(item.compressedSize)}`
-                    : "Size: -"}
                 </div>
-                {item.status === "compressed" && item.compressionPercent && (
-                  <div className="text-sm font-medium text-green-600">
-                    {item.compressionPercent}% lebih kecil
+              </div>
+
+              {/* Compressed Image */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-gray-700 flex items-center">
+                    <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
+                    Compressed
                   </div>
-                )}
+                  {item.compressedSize ? (
+                    <div className="text-xs text-gray-500 py-0.5 px-2 bg-gray-100 rounded-full">
+                      {formatFileSize(item.compressedSize)}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-400 py-0.5 px-2 bg-gray-100 rounded-full">
+                      Waiting...
+                    </div>
+                  )}
+                </div>
+                <div
+                  className={`rounded-lg overflow-hidden flex items-center justify-center border ${
+                    item.status === "compressed"
+                      ? "border-green-100 bg-[#f0fdf4]"
+                      : "border-gray-100 bg-[#f8fafc]"
+                  } aspect-video`}
+                >
+                  {item.status === "compressed" && item.compressedPreview ? (
+                    <img
+                      src={item.compressedPreview}
+                      alt="Compressed"
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  ) : item.status === "processing" ? (
+                    <div className="flex flex-col items-center text-gray-400">
+                      <div className="animate-spin h-8 w-8 mb-2 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                      <div className="text-sm">Processing...</div>
+                    </div>
+                  ) : item.status === "error" ? (
+                    <div className="flex flex-col items-center text-red-500 p-4 text-center">
+                      <div className="rounded-full bg-red-50 p-2 mb-2">
+                        <X size={24} className="text-red-500" />
+                      </div>
+                      <div className="font-medium">Compression Failed</div>
+                      <div className="text-xs mt-1 text-red-400">
+                        {item.errorMessage}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center text-gray-400 p-4">
+                      <div className="rounded-full bg-gray-100 p-3 mb-2">
+                        <ImageIcon size={24} className="text-gray-400" />
+                      </div>
+                      <div className="text-sm">Ready to compress</div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          {/* ITEM ACTION BUTTONS */}
-          <div className="p-4 bg-gray-50 border-t border-gray-100">
-            {item.status === "compressed" ? (
-              <Button
-                onClick={() => downloadImage(item)}
-                variant="primary"
-                className="w-full justify-center"
-              >
-                <Download className="mr-2 h-5 w-5" />
-                Download
-              </Button>
-            ) : item.status === "error" || item.status === "pending" ? (
-              <Button
-                onClick={() => compressImage(item)}
-                className="w-full justify-center"
-                disabled={item.status === "processing"}
-              >
-                <FileImage className="mr-2 h-5 w-5" />
-                Kompres
-              </Button>
-            ) : (
-              <Button disabled className="w-full justify-center">
-                <div className="animate-spin h-5 w-5 mr-3 border-2 border-white border-t-transparent rounded-full"></div>
-                Memproses...
-              </Button>
-            )}
+          )}
+
+          {/* ITEM ACTION BUTTONS - Always visible */}
+          <div className="p-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+            <div className="flex items-center text-sm space-x-2">
+              {item.status === "compressed" ? (
+                <div className="flex items-center">
+                  <span className="font-medium text-gray-700">
+                    {formatFileSize(item.originalSize)}
+                  </span>
+                  <span className="text-gray-400 mx-2">→</span>
+                  <span className="font-medium text-green-600">
+                    {formatFileSize(item.compressedSize)}
+                  </span>
+
+                  {/* Status Badge - Moved here */}
+                  <div className="ml-2 text-xs py-1 px-2 rounded-full font-medium bg-green-100 text-green-700">
+                    {item.compressionPercent}% smaller
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={`
+                  text-xs py-1 px-2 rounded-full font-medium
+                  ${
+                    item.status === "processing"
+                      ? "bg-blue-100 text-blue-700"
+                      : item.status === "error"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-gray-100 text-gray-700"
+                  }
+                `}
+                >
+                  {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                </div>
+              )}
+            </div>
+
+            <div>
+              {item.status === "compressed" ? (
+                <Button
+                  onClick={() => downloadImage(item)}
+                  variant="primary"
+                  className="justify-center bg-green-600 hover:bg-green-700 py-1.5"
+                  size="sm"
+                >
+                  <Download className="mr-1 h-4 w-4" />
+                  Download
+                </Button>
+              ) : item.status === "error" || item.status === "pending" ? (
+                <Button
+                  onClick={() => compressImage(item)}
+                  className="justify-center py-1.5"
+                  disabled={item.status === "processing"}
+                  size="sm"
+                >
+                  <RefreshCw className="mr-1 h-4 w-4" />
+                  {item.status === "error" ? "Retry" : "Compress"}
+                </Button>
+              ) : (
+                <Button disabled className="justify-center py-1.5" size="sm">
+                  <div className="animate-spin h-4 w-4 mr-1 border-2 border-white border-t-transparent rounded-full"></div>
+                  Processing...
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       ))}

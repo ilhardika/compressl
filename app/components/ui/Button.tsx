@@ -6,6 +6,7 @@ interface ButtonBaseProps {
   variant?: "primary" | "secondary" | "white";
   children: ReactNode;
   className?: string;
+  size?: "xs" | "sm" | "md" | "lg";
 }
 
 interface ButtonLinkProps extends ButtonBaseProps {
@@ -21,7 +22,7 @@ type ButtonProps = ButtonLinkProps | ButtonButtonProps;
 
 export function Button(props: ButtonProps) {
   const baseClasses =
-    "font-medium py-3 px-8 rounded-lg text-lg transition-colors inline-flex items-center justify-center";
+    "font-medium rounded-lg text-lg transition-colors inline-flex items-center justify-center";
 
   const variantClasses = {
     primary:
@@ -30,9 +31,26 @@ export function Button(props: ButtonProps) {
     white: "bg-white text-blue-600 hover:bg-gray-100 shadow-lg",
   };
 
-  const { variant = "primary", children, className = "" } = props;
+  const sizeClasses = {
+    xs: "text-xs px-2 py-1",
+    sm: "text-sm px-3 py-1.5",
+    md: "px-4 py-2",
+    lg: "text-lg px-5 py-2.5",
+  };
 
-  const classes = cn(baseClasses, variantClasses[variant], className);
+  const {
+    variant = "primary",
+    children,
+    className = "",
+    size = "md",
+  } = props;
+
+  const classes = cn(
+    baseClasses,
+    variantClasses[variant],
+    sizeClasses[size],
+    className
+  );
 
   // Jika props memiliki href, maka ini adalah ButtonLink
   if ("href" in props) {

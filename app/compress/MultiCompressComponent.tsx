@@ -7,6 +7,7 @@ import { saveAs } from "file-saver";
 import { UploadAndSettings } from "./UploadAndSettings";
 import { OutputImages } from "./OutputImages";
 import { ImageItem } from "./types";
+import { ArrowRight } from "lucide-react";
 
 // Interface untuk item gambar
 interface ImageItem {
@@ -216,29 +217,90 @@ export default function MultiCompressComponent() {
 
   // ===== RENDER UI =====
   return (
-    <div className="w-full flex flex-col md:flex-row gap-8">
-      <div className="md:w-1/2">
-        <UploadAndSettings
-          imageItems={imageItems}
-          quality={quality}
-          setQuality={setQuality}
-          isProcessingAll={isProcessingAll}
-          fileInputRef={fileInputRef}
-          handleFileChange={handleFileChange}
-          handleDrop={handleDrop}
-          clearAllImages={clearAllImages}
-          compressAllImages={compressAllImages}
-          downloadAllImages={downloadAllImages}
-        />
-      </div>
-      <div className="md:w-1/2">
-        <OutputImages
-          imageItems={imageItems}
-          formatFileSize={formatFileSize}
-          removeImage={removeImage}
-          compressImage={compressImage}
-          downloadImage={downloadImage}
-        />
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
+        Image Compression Tool
+      </h1>
+      <p className="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
+        Optimize your images with our simple compression tool. Upload, adjust settings,
+        and download high-quality compressed images within seconds.
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative">
+        {/* Input Section */}
+        <div className="relative">
+          <div className="sticky top-4">
+            <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                <h2 className="text-xl font-bold text-white flex items-center">
+                  <span className="bg-white text-blue-600 rounded-full h-7 w-7 inline-flex items-center justify-center mr-2 text-sm">1</span>
+                  Upload & Settings
+                </h2>
+                <p className="text-blue-100 text-sm">Add your images and customize compression options</p>
+              </div>
+              <div className="p-6">
+                <UploadAndSettings
+                  imageItems={imageItems}
+                  quality={quality}
+                  setQuality={setQuality}
+                  isProcessingAll={isProcessingAll}
+                  fileInputRef={fileInputRef}
+                  handleFileChange={handleFileChange}
+                  handleDrop={handleDrop}
+                  clearAllImages={clearAllImages}
+                  compressAllImages={compressAllImages}
+                  downloadAllImages={downloadAllImages}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Arrow for larger screens */}
+        <div className="hidden lg:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+          <div className="bg-white rounded-full shadow-lg p-3">
+            <ArrowRight size={24} className="text-blue-600" />
+          </div>
+        </div>
+
+        {/* Arrow for mobile */}
+        <div className="lg:hidden flex justify-center my-2">
+          <div className="bg-white rounded-full shadow-lg p-3 rotate-90">
+            <ArrowRight size={24} className="text-blue-600" />
+          </div>
+        </div>
+
+        {/* Output Section */}
+        <div>
+          <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 h-full">
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+              <h2 className="text-xl font-bold text-white flex items-center">
+                <span className="bg-white text-green-600 rounded-full h-7 w-7 inline-flex items-center justify-center mr-2 text-sm">2</span>
+                Results & Download
+              </h2>
+              <p className="text-green-100 text-sm">View and download your compressed images</p>
+            </div>
+            <div className="p-6">
+              {imageItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                  <div className="w-24 h-24 border-4 border-dashed rounded-full flex items-center justify-center mb-4">
+                    <ArrowRight size={32} />
+                  </div>
+                  <p className="text-lg font-medium">Your compressed images will appear here</p>
+                  <p className="text-sm mt-2">Upload an image to get started</p>
+                </div>
+              ) : (
+                <OutputImages
+                  imageItems={imageItems}
+                  formatFileSize={formatFileSize}
+                  removeImage={removeImage}
+                  compressImage={compressImage}
+                  downloadImage={downloadImage}
+                />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
