@@ -38,12 +38,7 @@ export function Button(props: ButtonProps) {
     lg: "text-lg px-5 py-2.5",
   };
 
-  const {
-    variant = "primary",
-    children,
-    className = "",
-    size = "md",
-  } = props;
+  const { variant = "primary", children, className = "", size = "md" } = props;
 
   const classes = cn(
     baseClasses,
@@ -71,12 +66,4 @@ export function Button(props: ButtonProps) {
       {children}
     </button>
   );
-}
-
-// Jika kode di atas sudah menghapus prop compressImage, maka tidak perlu parameter ini
-export function OutputImages({
-  // ...
-  compressImage, // <-- HAPUS INI
-}: Props) {
-  // ...
 }

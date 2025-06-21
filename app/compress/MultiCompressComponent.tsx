@@ -112,7 +112,10 @@ export default function MultiCompressComponent() {
       console.error("Error compressing image:", error);
       return {
         status: "error",
-        errorMessage: "Failed to compress image",
+        errorMessage:
+          error instanceof Error
+            ? error.message
+            : "Unknown error occurred while compressing image",
       };
     }
   };
