@@ -5,12 +5,12 @@ import imageCompression from "browser-image-compression";
 import { UploadAndSettings } from "./UploadAndSettings";
 import { OutputImages } from "./OutputImages";
 import { ImageItem } from "./types";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Download, Save } from "lucide-react"; // Tambahkan import icon
 import { useAuth } from "@clerk/nextjs";
-// Add these imports
 import { uploadCompressedImage } from "../lib/storage";
 import { recordCompression } from "../lib/analytics";
-import { supabase } from "../lib/supabase";
+import { supabase, formatUserId } from "../lib/supabase";
+import { useToast } from "../components/ui/Toast";
 
 export default function MultiCompressComponent() {
   // ===== STATE MANAGEMENT =====
@@ -18,13 +18,18 @@ export default function MultiCompressComponent() {
   const [quality, setQuality] = useState<number>(80);
   const [isProcessingAll, setIsProcessingAll] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Add these new states
   const { userId, isSignedIn } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
 
+  // State baru untuk modal
+  const [showModal, setShowModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ImageItem | null>(null);
+
   // Check if Supabase is available
   const isSupabaseAvailable = !!supabase;
+
+  // Tambahkan hook useToast
+  const { showToast } = useToast();
 
   // ===== UTILITY FUNCTIONS =====
 
@@ -169,41 +174,78 @@ export default function MultiCompressComponent() {
     link.download = fileName;
     link.click();
 
-    // If user is signed in, save to Supabase
-    if (isSignedIn && userId && item.compressedSize) {
-      try {
-        setIsSaving(true);
-
-        try {
-          // Upload to Supabase storage
-          const path = await uploadCompressedImage(item.compressedFile, userId);
-
-          // Record compression analytics
-          if (path) {
-            await recordCompression({
-              userId,
-              originalSize: item.originalSize,
-              compressedSize: item.compressedSize,
-              compressionRate: item.compressionPercent || 0,
-              fileName: item.file.name,
-              imageType: extension,
-            });
-
-            console.log("Image saved to Supabase:", path);
-          }
-        } catch (supabaseError) {
-          console.error("Supabase error:", supabaseError);
-          // Continue with the download even if Supabase fails
-        }
-      } finally {
-        setIsSaving(false);
-      }
-    }
-
     // Cleanup object URL
     setTimeout(() => {
       URL.revokeObjectURL(link.href);
     }, 100);
+  };
+
+  // Modifikasi downloadImage untuk memunculkan modal pilihan
+  const handleImageAction = (item: ImageItem) => {
+    if (!item.compressedFile) return;
+
+    // Jika user belum login atau Supabase tidak tersedia, langsung download
+    if (!isSignedIn || !isSupabaseAvailable) {
+      downloadImage(item);
+      return;
+    }
+
+    // Jika user sudah login, tunjukkan modal pilihan
+    setSelectedItem(item);
+    setShowModal(true);
+  };
+
+  // Fungsi untuk menyimpan ke Supabase
+  const saveToSupabase = async (item: ImageItem) => {
+    if (!isSignedIn || !userId || !item.compressedFile || !item.compressedSize)
+      return;
+
+    try {
+      setIsSaving(true);
+
+      // Upload to Supabase storage
+      const uploadResult = await uploadCompressedImage(
+        item.compressedFile,
+        userId
+      );
+
+      if (!uploadResult) {
+        showToast("Gagal mengunggah gambar. Silakan coba lagi.", "error");
+        return;
+      }
+
+      // Record compression analytics
+      const compressionData = {
+        userId, // Pastikan ini adalah ID dari Clerk yang valid
+        originalSize: item.originalSize,
+        compressedSize: item.compressedSize,
+        compressionRate: item.compressionPercent || 0,
+        fileName: uploadResult.fullFileName,
+        imageType: item.file.name.split(".").pop() || "jpg",
+      };
+
+      console.log("Data kompresi yang akan disimpan:", compressionData);
+
+      const { data, error } = await recordCompression(compressionData);
+
+      if (error) {
+        console.error("Error saat menyimpan data kompresi:", error);
+        showToast(`Gagal menyimpan data kompresi: ${error.message}`, "error");
+      } else {
+        showToast("Gambar berhasil disimpan ke dashboard!", "success");
+      }
+    } catch (error) {
+      showToast(`Gagal menyimpan gambar: ${error.message}`, "error");
+    } finally {
+      setIsSaving(false);
+      setShowModal(false);
+    }
+  };
+
+  // Fungsi kombinasi simpan dan download
+  const saveAndDownload = async (item: ImageItem) => {
+    await saveToSupabase(item);
+    downloadImage(item);
   };
 
   // Download semua gambar yang sudah terkompresi
@@ -335,7 +377,7 @@ export default function MultiCompressComponent() {
                   imageItems={imageItems}
                   formatFileSize={formatFileSize}
                   removeImage={removeImage}
-                  downloadImage={downloadImage}
+                  downloadImage={handleImageAction} // Ganti dengan fungsi baru
                   downloadAllImages={downloadAllImages}
                 />
               )}
@@ -344,10 +386,77 @@ export default function MultiCompressComponent() {
         </div>
       </div>
 
+      {/* Modal untuk pilihan Download atau Save */}
+      {showModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 shadow-xl max-w-md w-full">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Save or Download
+            </h3>
+            <p className="text-gray-600 mb-6">
+              What would you like to do with this compressed image?
+            </p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => downloadImage(selectedItem)}
+                className="flex flex-col items-center justify-center py-4 px-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                <Download size={32} className="mb-2 text-gray-700" />
+                <span className="font-medium text-gray-800">Download Only</span>
+                <span className="text-xs text-gray-500 mt-1">
+                  Save to your device
+                </span>
+              </button>
+
+              <button
+                onClick={() => saveToSupabase(selectedItem)}
+                className="flex flex-col items-center justify-center py-4 px-2 rounded-lg bg-blue-100 hover:bg-blue-200 transition-colors"
+              >
+                <Save size={32} className="mb-2 text-blue-700" />
+                <span className="font-medium text-blue-800">
+                  Save to Dashboard
+                </span>
+                <span className="text-xs text-blue-600 mt-1">
+                  Access later from your account
+                </span>
+              </button>
+            </div>
+
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => saveAndDownload(selectedItem)}
+                className="text-sm font-medium text-blue-600 hover:text-blue-800"
+              >
+                Save and download
+              </button>
+            </div>
+
+            <div className="mt-6 border-t border-gray-200 pt-4 flex justify-end">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+            </div>
+
+            {isSaving && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full mb-2"></div>
+                  <p className="text-blue-600 font-medium">Saving...</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Supabase info message */}
       {isSignedIn && isSupabaseAvailable && (
         <p className="text-xs text-gray-600 mt-1">
-          Images will be saved to your account for later access
+          Sign in to save images to your dashboard for later access
         </p>
       )}
     </div>

@@ -4,6 +4,8 @@ import "./globals.css";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { ClerkProvider } from "@clerk/nextjs";
+// Tambahkan impor ToastProvider
+import { ToastProvider } from "./components/ui/Toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,9 +26,11 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" className="scroll-smooth">
         <body className={`${inter.className} antialiased bg-white`}>
-          <Header />
-          {children}
-          <Footer />
+          <ToastProvider>
+            <Header />
+            {children}
+            <Footer />
+          </ToastProvider>
         </body>
       </html>
     </ClerkProvider>

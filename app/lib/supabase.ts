@@ -1,29 +1,46 @@
 import { createClient } from "@supabase/supabase-js";
 
-// For development, we'll use placeholder values if env vars aren't available
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  "https://placeholder-project.supabase.co";
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
+let supabase = null;
 
-// Check if we have the required environment variables
-const hasEnvVariables =
-  process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+try {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// Create a conditional Supabase client
-export const supabase = hasEnvVariables
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null; // Return null if environment variables are missing
+  if (supabaseUrl && supabaseUrl.startsWith("https://") && supabaseAnonKey) {
+    supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    });
+  } else {
+    console.error("Konfigurasi Supabase tidak valid");
+  }
+} catch (error) {
+  console.error("Error saat inisialisasi Supabase:", error);
+}
 
-// Helper function to safely use Supabase
+export { supabase };
+
+// Helper function untuk menggunakan Supabase secara aman
 export function useSupabase() {
   if (!supabase) {
     console.warn(
-      "Supabase client not initialized - please check your environment variables"
+      "Supabase client tidak diinisialisasi - periksa environment variables"
     );
     return null;
   }
   return supabase;
+}
+
+// Format User ID untuk path storage
+export function formatUserId(userId: string | null | undefined): string {
+  if (!userId) return "anonymous";
+
+  // Hapus karakter khusus yang mungkin menyebabkan masalah di path storage
+  const formattedId = userId
+    .replace(/[^a-zA-Z0-9_-]/g, "_") // Ganti karakter khusus dengan underscore
+    .toLowerCase(); // Lowercase untuk konsistensi
+
+  return formattedId;
 }
