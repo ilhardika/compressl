@@ -42,9 +42,16 @@ export function Header() {
               <Button
                 href="/compress"
                 variant="secondary"
-                className="py-2 px-5 text-base"
+                className="py-2 px-4 text-base"
               >
                 Compress
+              </Button>
+              <Button
+                href="/dashboard"
+                variant="secondary"
+                className="py-2 px-4 text-base"
+              >
+                Dashboard
               </Button>
               <UserButton afterSignOutUrl="/" />
             </>

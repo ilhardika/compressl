@@ -6,6 +6,11 @@ import { UploadAndSettings } from "./UploadAndSettings";
 import { OutputImages } from "./OutputImages";
 import { ImageItem } from "./types";
 import { ArrowRight } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+// Add these imports
+import { uploadCompressedImage } from "../lib/storage";
+import { recordCompression } from "../lib/analytics";
+import { supabase } from "../lib/supabase";
 
 export default function MultiCompressComponent() {
   // ===== STATE MANAGEMENT =====
@@ -13,6 +18,13 @@ export default function MultiCompressComponent() {
   const [quality, setQuality] = useState<number>(80);
   const [isProcessingAll, setIsProcessingAll] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Add these new states
+  const { userId, isSignedIn } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Check if Supabase is available
+  const isSupabaseAvailable = !!supabase;
 
   // ===== UTILITY FUNCTIONS =====
 
@@ -144,19 +156,54 @@ export default function MultiCompressComponent() {
   // ===== DOWNLOAD FUNCTIONS =====
 
   // Download satu gambar
-  const downloadImage = (item: ImageItem) => {
+  const downloadImage = async (item: ImageItem) => {
     if (!item.compressedFile) return;
 
-    // Gunakan extension file asli jika ada
+    // Original download logic
     const extension = item.file.name.split(".").pop() || "jpg";
     const nameWithoutExtension = item.file.name.replace(/\.[^/.]+$/, "");
     const fileName = `${nameWithoutExtension}_compressed.${extension}`;
 
-    // Download file
     const link = document.createElement("a");
     link.href = URL.createObjectURL(item.compressedFile);
     link.download = fileName;
     link.click();
+
+    // If user is signed in, save to Supabase
+    if (isSignedIn && userId && item.compressedSize) {
+      try {
+        setIsSaving(true);
+
+        try {
+          // Upload to Supabase storage
+          const path = await uploadCompressedImage(item.compressedFile, userId);
+
+          // Record compression analytics
+          if (path) {
+            await recordCompression({
+              userId,
+              originalSize: item.originalSize,
+              compressedSize: item.compressedSize,
+              compressionRate: item.compressionPercent || 0,
+              fileName: item.file.name,
+              imageType: extension,
+            });
+
+            console.log("Image saved to Supabase:", path);
+          }
+        } catch (supabaseError) {
+          console.error("Supabase error:", supabaseError);
+          // Continue with the download even if Supabase fails
+        }
+      } finally {
+        setIsSaving(false);
+      }
+    }
+
+    // Cleanup object URL
+    setTimeout(() => {
+      URL.revokeObjectURL(link.href);
+    }, 100);
   };
 
   // Download semua gambar yang sudah terkompresi
@@ -296,6 +343,13 @@ export default function MultiCompressComponent() {
           </div>
         </div>
       </div>
+
+      {/* Supabase info message */}
+      {isSignedIn && isSupabaseAvailable && (
+        <p className="text-xs text-gray-600 mt-1">
+          Images will be saved to your account for later access
+        </p>
+      )}
     </div>
   );
 }
