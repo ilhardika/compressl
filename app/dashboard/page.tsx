@@ -261,13 +261,23 @@ export default function DashboardPage() {
                   <div className="h-40 bg-gray-100 rounded flex items-center justify-center mb-4 overflow-hidden">
                     <ImageWithFallback src={image.url} alt={image.name} />
                   </div>
-                  <div className="font-medium text-gray-800 mb-2">
+                  <div className="font-medium text-gray-800 mb-2 truncate">
                     {image.name}
                   </div>
-                  <div className="text-sm text-gray-500 mb-4">
-                    Dikompresi pada{" "}
-                    {new Date(image.created_at).toLocaleDateString()}
-                  </div>
+                    <div className="flex justify-between text-sm text-gray-500 mb-4">
+                      <span>
+                      {image.created_at
+                        ? new Date(image.created_at).toLocaleDateString("id-ID", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
+                        : "-"}
+                      </span>
+                      <span>
+                      {((image.compressed_size ?? 0) / 1024).toFixed(1)} KB
+                      </span>
+                    </div>
                   <div className="flex justify-between">
                     <Button
                       size="sm"

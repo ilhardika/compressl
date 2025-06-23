@@ -289,6 +289,33 @@ export default function MultiCompressComponent() {
     setImageItems([]);
   };
 
+  // Save satu gambar ke dashboard
+  const handleSaveImage = (item: ImageItem) => {
+    if (!isSignedIn || !isSupabaseAvailable) {
+      showToast("Login untuk menyimpan ke dashboard", "info");
+      return;
+    }
+    saveToSupabase(item);
+  };
+
+  // Save semua gambar ke dashboard
+  const handleSaveAllImages = async () => {
+    if (!isSignedIn || !isSupabaseAvailable) {
+      showToast("Login untuk menyimpan ke dashboard", "info");
+      return;
+    }
+    const compressedItems = imageItems.filter(
+      (item) => item.status === "compressed" && item.compressedFile
+    );
+    if (compressedItems.length === 0) return;
+    setIsSaving(true);
+    for (const item of compressedItems) {
+      await saveToSupabase(item);
+    }
+    setIsSaving(false);
+    showToast("Semua gambar berhasil disimpan ke dashboard!", "success");
+  };
+
   // ===== RENDER UI =====
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -377,8 +404,10 @@ export default function MultiCompressComponent() {
                   imageItems={imageItems}
                   formatFileSize={formatFileSize}
                   removeImage={removeImage}
-                  downloadImage={handleImageAction} // Ganti dengan fungsi baru
+                  downloadImage={handleImageAction}
                   downloadAllImages={downloadAllImages}
+                  saveImage={handleSaveImage} // Tambah ini
+                  saveAllImages={handleSaveAllImages} // Tambah ini
                 />
               )}
             </div>

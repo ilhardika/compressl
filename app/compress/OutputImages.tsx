@@ -5,6 +5,7 @@ import {
   Image as ImageIcon,
   ChevronDown,
   ChevronUp,
+  Save,
 } from "lucide-react";
 import { ImageItem } from "./types";
 import React, { useState } from "react";
@@ -15,6 +16,8 @@ interface Props {
   removeImage: (id: string) => void;
   downloadImage: (item: ImageItem) => void;
   downloadAllImages: () => void;
+  saveImage: (item: ImageItem) => void; // Tambah ini
+  saveAllImages: () => void; // Tambah ini
 }
 
 export function OutputImages({
@@ -23,6 +26,7 @@ export function OutputImages({
   removeImage,
   downloadImage,
   downloadAllImages,
+  saveAllImages,
 }: Props) {
   // Map untuk menyimpan state expanded untuk masing-masing item
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
@@ -48,14 +52,22 @@ export function OutputImages({
     <div className="space-y-4">
       {/* Download All Button at top */}
       {hasCompressedItems && (
-        <div className="mb-4">
+        <div className="mb-4 flex gap-2">
           <Button
             onClick={downloadAllImages}
             variant="primary"
-            className="w-full justify-center bg-green-600 hover:bg-green-700"
+            className="flex-1 justify-center bg-green-600 hover:bg-green-700"
           >
             <Download className="mr-2 h-5 w-5" />
-            Download All Images ({compressedItems.length})
+            Download All ({compressedItems.length})
+          </Button>
+          <Button
+            onClick={saveAllImages}
+            variant="secondary"
+            className="flex-1 justify-center"
+          >
+            <Save className="mr-2 h-5 w-5" />
+            Save All ({compressedItems.length})
           </Button>
         </div>
       )}
@@ -198,17 +210,18 @@ export function OutputImages({
           <div className="p-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
             <div className="flex items-center text-sm space-x-2">
               {item.status === "compressed" ? (
-                <div className="flex items-center">
-                  <span className="font-medium text-gray-700">
-                    {formatFileSize(item.originalSize)}
-                  </span>
-                  <span className="text-gray-400 mx-2">→</span>
-                  <span className="font-medium text-green-600">
-                    {formatFileSize(item.compressedSize)}
-                  </span>
-
+                <div>
+                  <div className="flex items-center">
+                    <span className="font-medium text-gray-700">
+                      {formatFileSize(item.originalSize)}
+                    </span>
+                    <span className="text-gray-400 mx-2">→</span>
+                    <span className="font-medium text-green-600">
+                      {formatFileSize(item.compressedSize)}
+                    </span>
+                  </div>
                   {/* Status Badge */}
-                  <div className="ml-2 text-xs py-1 px-2 rounded-full font-medium bg-green-100 text-green-700">
+                  <div className="mt-2 text-xs text-center py-1 max-w-26 px-2 rounded-full font-medium bg-green-100 text-green-700">
                     {item.compressionPercent}% smaller
                   </div>
                 </div>
@@ -232,15 +245,26 @@ export function OutputImages({
 
             {/* Download button only for compressed items */}
             {item.status === "compressed" && (
-              <Button
-                onClick={() => downloadImage(item)}
-                variant="primary"
-                className="justify-center bg-green-600 hover:bg-green-700 py-1.5"
-                size="sm"
-              >
-                <Download className="mr-1 h-4 w-4" />
-                Download
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => downloadImage(item)}
+                  variant="primary"
+                  size="sm"
+                  className="justify-center bg-green-600 hover:bg-green-700 py-1.5"
+                >
+                  <Download className="mr-1 h-4 w-4" />
+                  Download
+                </Button>
+                <Button
+                  onClick={() => saveImage(item)}
+                  variant="secondary"
+                  size="sm"
+                  className="justify-center text-blue-600 py-1.5"
+                >
+                  <Save className="mr-1 h-4 w-4" />
+                  Save
+                </Button>
+              </div>
             )}
           </div>
         </div>
