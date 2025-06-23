@@ -15,7 +15,6 @@ import { useToast } from "../components/ui/Toast";
 export default function MultiCompressComponent() {
   // ===== STATE MANAGEMENT =====
   const [imageItems, setImageItems] = useState<ImageItem[]>([]);
-  const [quality, setQuality] = useState<number>(80);
   const [isProcessingAll, setIsProcessingAll] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { userId, isSignedIn } = useAuth();
@@ -87,26 +86,21 @@ export default function MultiCompressComponent() {
 
   // ===== COMPRESSION FUNCTIONS =====
 
-  // Kompresi satu gambar
+  // Kompresi satu gambar (pakai default quality dari library)
   const compressImage = async (item: ImageItem) => {
     try {
-      // Update status menjadi processing
       setImageItems((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, status: "processing" } : i))
       );
 
-      // Opsi kompresi
       const options = {
-        maxSizeMB: 1,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
-        initialQuality: quality / 100,
+        maxSizeMB: 1, // Batasi hasil maksimal 1MB
       };
 
-      // Proses kompresi
       const compressedFile = await imageCompression(item.file, options);
 
-      // Buat preview untuk file hasil kompresi
       const reader = new FileReader();
       reader.readAsDataURL(compressedFile);
 
@@ -323,8 +317,8 @@ export default function MultiCompressComponent() {
         Image Compression Tool
       </h1>
       <p className="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
-        Optimize your images with our simple compression tool. Upload, adjust
-        settings, and download high-quality compressed images within seconds.
+        Optimize your images with our simple compression tool. Upload and
+        download high-quality compressed images within seconds.
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative">
@@ -337,17 +331,15 @@ export default function MultiCompressComponent() {
                   <span className="bg-white text-blue-600 rounded-full h-7 w-7 inline-flex items-center justify-center mr-2 text-sm">
                     1
                   </span>
-                  Upload & Settings
+                  Upload Images
                 </h2>
                 <p className="text-blue-100 text-sm">
-                  Add your images and customize compression options
+                  Add your images to compress
                 </p>
               </div>
               <div className="p-6">
                 <UploadAndSettings
                   imageItems={imageItems}
-                  quality={quality}
-                  setQuality={setQuality}
                   isProcessingAll={isProcessingAll}
                   fileInputRef={fileInputRef}
                   handleFileChange={handleFileChange}
