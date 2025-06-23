@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Compressly
 
-## Getting Started
+Compressly adalah aplikasi web modern untuk kompresi gambar berbasis [Next.js](https://nextjs.org) dan [Supabase](https://supabase.com).  
+Aplikasi ini memungkinkan pengguna mengompres gambar secara massal, mengunduh hasilnya, serta menyimpan riwayat kompresi ke dashboard pribadi.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Fitur Utama
+
+- **Kompresi Gambar Massal**: Upload banyak gambar sekaligus, kompres otomatis, dan download hasilnya.
+- **Batas Ukuran Otomatis**: Setiap gambar hasil kompresi otomatis dibatasi maksimal 1MB.
+- **Dashboard Pribadi**: Simpan hasil kompresi ke dashboard, lihat riwayat, dan download ulang kapan saja.
+- **Dukungan Format Populer**: JPG, PNG, WebP, dsb.
+- **Login & Keamanan**: Otentikasi menggunakan Clerk, penyimpanan aman di Supabase Storage.
+- **UI Modern & Responsif**: Menggunakan Tailwind CSS dan komponen custom.
+
+---
+
+## 🚀 Cara Menjalankan Project
+
+1. **Clone repository ini**
+
+   ```bash
+   git clone <repo-url>
+   cd compressly
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   # atau
+   yarn install
+   ```
+
+3. **Buat file environment**
+
+   ```
+   cp .env.example .env.local
+   ```
+
+   Lalu isi variabel Supabase dan Clerk sesuai kebutuhan.
+
+4. **Jalankan development server**
+
+   ```bash
+   npm run dev
+   # atau
+   yarn dev
+   ```
+
+5. **Akses di browser**
+   ```
+   http://localhost:3000
+   ```
+
+---
+
+## ⚙️ Konfigurasi Environment
+
+Buat file `.env.local` dan isi dengan:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🗂️ Struktur Folder Penting
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  compress/           # Halaman & komponen kompresi gambar
+  dashboard/          # Halaman dashboard user
+  components/         # Komponen UI reusable
+  lib/                # Logic Supabase, analytics, utils
+  sign-in/, sign-up/  # Halaman otentikasi
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 📝 Catatan Pengembangan
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Kompresi gambar menggunakan [browser-image-compression](https://www.npmjs.com/package/browser-image-compression).
+- Semua gambar hasil kompresi otomatis dibatasi maksimal 1MB (`maxSizeMB: 1`).
+- Untuk produksi, pastikan policy Supabase Storage dan RLS sudah aman.
+- Untuk pengembangan, bucket bisa di-set public agar testing lebih mudah.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📦 Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deploy mudah ke [Vercel](https://vercel.com/) atau platform Next.js lain.  
+Pastikan environment variable sudah diatur di dashboard hosting.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🙏 Kontribusi
+
+Pull request, issue, dan feedback sangat diterima!  
+Silakan fork repo ini dan buat PR untuk fitur/bugfix.
+
+---
