@@ -25,7 +25,7 @@ export default function MultiCompressComponent() {
   const [selectedItem, setSelectedItem] = useState<ImageItem | null>(null);
 
   // Check if Supabase is available
-  const isSupabaseAvailable = !!supabase;
+  const isSupabaseAvailable = !!useSupabase();
 
   // Tambahkan hook useToast
   const { showToast } = useToast();
