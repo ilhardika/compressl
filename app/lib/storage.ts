@@ -4,40 +4,29 @@ import { createClient } from "@supabase/supabase-js";
 // Perbaikan untuk konsistensi penamaan file
 
 export async function uploadCompressedImage(file: File, userId: string) {
-  // Gunakan service role key untuk upload (bypass RLS)
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    console.warn("Supabase config missing");
-    return null;
-  }
-
-  const client = createClient(supabaseUrl, serviceRoleKey);
-
   try {
-    // Format nama file dengan timestamp dan hapus spasi
-    const sanitizedFileName = file.name.replace(/\s+/g, "_");
-    const fileName = `${Date.now()}_${sanitizedFileName}`;
+    // Gunakan API route untuk upload (server-side dengan service role key)
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("userId", userId);
 
-    const { data, error } = await client.storage
-      .from("compressed-images")
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: true,
-      });
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-    if (error) {
-      throw new Error(`Error mengunggah file: ${error.message}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Upload failed");
     }
 
-    // PENTING: Simpan nama file lengkap (dengan timestamp) ke database
-    // agar mudah diambil kembali
-    return {
-      path: data?.path,
-      fullFileName: fileName, // Nama file lengkap
-      fullPath: fileName, // Path lengkap
-    };
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.error || "Upload failed");
+    }
+
+    return result.data;
   } catch (error) {
     console.error("Error saat upload gambar:", error);
     throw error;
