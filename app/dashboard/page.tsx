@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { getUserImages } from "../lib/storage";
-import { getUserStats } from "../lib/analytics";
 import { useSupabase } from "../lib/supabase";
 import { useToast } from "../components/ui/Toast";
 import Link from "next/link";
@@ -23,18 +22,35 @@ export default function DashboardPage() {
     async function loadUserData() {
       if (!userId) return;
 
+      // STOP LOOP: Cek apakah URL Supabase valid
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      if (
+        !supabaseUrl ||
+        supabaseUrl.includes("YOUR_NEW_PROJECT_ID") ||
+        supabaseUrl.includes("PASTE_PROJECT_URL_HERE")
+      ) {
+        console.warn("⚠️ Supabase URL belum dikonfigurasi dengan benar");
+        setLoading(false);
+        setUserImages([]);
+        setStats(null);
+        return; // STOP di sini, jangan lanjut fetch
+      }
+
       try {
         setLoading(true);
 
         if (!supabaseClient) {
-          showToast("Koneksi database tidak tersedia", "error");
+          console.error("❌ Supabase client is null");
+          showToast("Supabase belum dikonfigurasi", "error");
+          setLoading(false);
           return;
         }
 
-        // Ambil data dari database
+        // Ambil data dari database - HANYA untuk user yang sedang login
         const { data: compressions, error: dbError } = await supabaseClient
           .from("compressions")
           .select("*")
+          .eq("user_id", userId) // Filter berdasarkan user_id
           .order("created_at", { ascending: false });
 
         if (dbError) {
@@ -47,25 +63,16 @@ export default function DashboardPage() {
                 let imageUrl = "";
 
                 try {
-                  // Gunakan nama file dengan format yang benar
+                  // Sementara ambil dari root folder
                   const fileName = record.file_name.replace(/\s+/g, "_");
-                  // Untuk bucket yang telah disetel sebagai PUBLIC
+
+                  // Untuk bucket PUBLIC, gunakan public URL
                   const { data: urlData } = supabaseClient.storage
                     .from("compressed-images")
-                    .getPublicUrl(`public/${fileName}`);
+                    .getPublicUrl(fileName);
 
                   imageUrl = urlData?.publicUrl || "";
                   console.log("Public URL:", imageUrl);
-
-                  // Untuk bucket PRIVATE, gunakan ini sebagai gantinya:
-                  /*
-                  const { data: signedUrlData, error: signedUrlError } = await supabaseClient.storage
-                    .from("compressed-images")
-                    .createSignedUrl(`public/${fileName}`, 60 * 60); // 1 jam
-
-                  imageUrl = signedUrlData?.signedUrl || "";
-                  console.log("Signed URL:", imageUrl);
-                  */
                 } catch (urlErr) {
                   console.warn("Error getting URL:", urlErr);
                   imageUrl = "";
@@ -168,23 +175,16 @@ export default function DashboardPage() {
 
       console.log("Data berhasil dihapus dari database:", dbData);
 
-      // Hapus dari storage - coba beberapa kemungkinan path
-      const storagePaths = [
-        `public/${imageToDelete.fileName}`,
-        // Jika file nama aslinya memiliki timestamp prefix
-        ...Array.from(
-          { length: 5 },
-          (_, i) => `public/*_${imageToDelete.fileName}`
-        ),
-      ];
+      // Hapus dari storage (root folder)
+      const storagePath = imageToDelete.fileName;
 
-      console.log("Mencoba menghapus path storage:", storagePaths[0]);
+      console.log("Mencoba menghapus path storage:", storagePath);
 
       try {
         const { data: storageData, error: storageError } =
           await supabaseClient.storage
             .from("compressed-images")
-            .remove([storagePaths[0]]);
+            .remove([storagePath]);
 
         if (storageError) {
           console.warn(
@@ -264,20 +264,23 @@ export default function DashboardPage() {
                   <div className="font-medium text-gray-800 mb-2 truncate">
                     {image.name}
                   </div>
-                    <div className="flex justify-between text-sm text-gray-500 mb-4">
-                      <span>
+                  <div className="flex justify-between text-sm text-gray-500 mb-4">
+                    <span>
                       {image.created_at
-                        ? new Date(image.created_at).toLocaleDateString("id-ID", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
+                        ? new Date(image.created_at).toLocaleDateString(
+                            "id-ID",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )
                         : "-"}
-                      </span>
-                      <span>
+                    </span>
+                    <span>
                       {((image.compressed_size ?? 0) / 1024).toFixed(1)} KB
-                      </span>
-                    </div>
+                    </span>
+                  </div>
                   <div className="flex justify-between">
                     <Button
                       size="sm"

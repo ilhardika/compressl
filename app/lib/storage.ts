@@ -1,20 +1,25 @@
 import { supabase, useSupabase, formatUserId } from "./supabase";
+import { createClient } from "@supabase/supabase-js";
 
 // Perbaikan untuk konsistensi penamaan file
 
 export async function uploadCompressedImage(file: File, userId: string) {
-  const client = useSupabase();
-  if (!client) {
-    console.warn("Supabase tidak diinisialisasi, gambar tidak diunggah");
+  // Gunakan service role key untuk upload (bypass RLS)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4cGF3ampsZnZmdmRrZ2FibXJjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTM4Njk4MCwiZXhwIjoyMDY2OTYyOTgwfQ.raX9PuvL7tAj-gYUoV2Br3XRTs65UjyA5MerbJkM9mk";
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.warn("Supabase config missing");
     return null;
   }
+
+  const client = createClient(supabaseUrl, serviceRoleKey);
 
   try {
     // Format nama file dengan timestamp dan hapus spasi
     const sanitizedFileName = file.name.replace(/\s+/g, "_");
-    const fileName = `public/${Date.now()}_${sanitizedFileName}`;
-
-    console.log("Mengunggah file ke path:", fileName);
+    const fileName = `${Date.now()}_${sanitizedFileName}`;
 
     const { data, error } = await client.storage
       .from("compressed-images")
@@ -31,7 +36,8 @@ export async function uploadCompressedImage(file: File, userId: string) {
     // agar mudah diambil kembali
     return {
       path: data?.path,
-      fullFileName: fileName.split("/").pop(), // Hanya nama file tanpa 'public/'
+      fullFileName: fileName, // Nama file lengkap
+      fullPath: fileName, // Path lengkap
     };
   } catch (error) {
     console.error("Error saat upload gambar:", error);
@@ -69,25 +75,17 @@ export async function getUserImages(userId: string) {
     const imagesWithUrls = await Promise.all(
       compressions.map(async (record) => {
         try {
-          // Format nama file untuk storage
-          const fileName = `public/${record.file_name.replace(/\s+/g, "_")}`;
+          // Sementara ambil dari root folder
+          const fileName = record.file_name.replace(/\s+/g, "_");
 
-          // Untuk bucket privat, gunakan signed URL
-          const { data: signedUrlData, error: signedUrlError } =
-            await client.storage
-              .from("compressed-images")
-              .createSignedUrl(fileName, 60 * 60); // 1 jam
+          // Untuk bucket public, gunakan public URL
+          const { data: urlData } = client.storage
+            .from("compressed-images")
+            .getPublicUrl(fileName);
 
-          const imageUrl = signedUrlData?.signedUrl || "";
+          const imageUrl = urlData?.publicUrl || "";
 
-          if (signedUrlError) {
-            console.warn(
-              "Error signed URL untuk",
-              fileName,
-              ":",
-              signedUrlError
-            );
-          }
+          console.log("Public URL untuk", fileName, ":", imageUrl);
 
           return {
             id: record.id,
