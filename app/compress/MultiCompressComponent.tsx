@@ -9,7 +9,7 @@ import { ArrowRight, Download, Save } from "lucide-react"; // Tambahkan import i
 import { useAuth } from "@clerk/nextjs";
 import { uploadCompressedImage } from "../lib/storage";
 import { recordCompression } from "../lib/analytics";
-import { supabase, formatUserId } from "../lib/supabase";
+import { useSupabase, formatUserId } from "../lib/supabase";
 import { useToast } from "../components/ui/Toast";
 
 export default function MultiCompressComponent() {

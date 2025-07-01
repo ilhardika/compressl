@@ -30,7 +30,7 @@ export default function SignUpPage() {
             routing="path"
             path="/sign-up"
             signInUrl="/sign-in"
-            redirectUrl="/compress" {/* Ubah dari /dashboard ke /compress */}
+            redirectUrl="/compress"
           />
         </div>
       </div>
