@@ -1,27 +1,49 @@
-# Compressly
+# 🖼️ Compressly
 
-Compressly adalah aplikasi web modern untuk kompresi gambar berbasis [Next.js](https://nextjs.org) dan [Supabase](https://supabase.com).  
-Aplikasi ini memungkinkan pengguna mengompres gambar secara massal, mengunduh hasilnya, serta menyimpan riwayat kompresi ke dashboard pribadi.
+<div align="center">
+  <img src="https://img.shields.io/badge/Next.js-15.3.4-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Supabase-Storage-green?style=for-the-badge&logo=supabase" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Clerk-Auth-purple?style=for-the-badge&logo=clerk" alt="Clerk" />
+  <img src="https://img.shields.io/badge/Tailwind-CSS-cyan?style=for-the-badge&logo=tailwindcss" alt="Tailwind" />
+</div>
+
+<br />
+
+<div align="center">
+  <h3>🚀 Modern Image Compression Tool</h3>
+  <p>Aplikasi web modern untuk kompresi gambar berbasis Next.js dan Supabase.<br />
+  Kompres gambar secara massal, simpan ke dashboard pribadi, dan download kapan saja.</p>
+</div>
 
 ---
 
 ## ✨ Fitur Utama
 
-- **Kompresi Gambar Massal**: Upload banyak gambar sekaligus, kompres otomatis, dan download hasilnya.
-- **Batas Ukuran Otomatis**: Setiap gambar hasil kompresi otomatis dibatasi maksimal 1MB.
-- **Dashboard Pribadi**: Simpan hasil kompresi ke dashboard, lihat riwayat, dan download ulang kapan saja.
-- **Dukungan Format Populer**: JPG, PNG, WebP, dsb.
-- **Login & Keamanan**: Otentikasi menggunakan Clerk, penyimpanan aman di Supabase Storage.
-- **UI Modern & Responsif**: Menggunakan Tailwind CSS dan komponen custom.
+🔥 **Kompresi Gambar Massal** - Upload banyak gambar sekaligus dan kompres otomatis
+📏 **Optimasi Ukuran Cerdas** - Setiap gambar hasil kompresi dibatasi maksimal 1MB
+📊 **Dashboard Pribadi** - Simpan riwayat kompresi dan download ulang kapan saja
+🎨 **Multi Format Support** - JPG, PNG, WebP, dan format populer lainnya
+🔐 **Keamanan Terjamin** - Autentikasi Clerk + penyimpanan aman Supabase Storage
+📱 **UI Modern & Responsif** - Desain clean dengan Tailwind CSS
 
 ---
 
-## 🚀 Cara Menjalankan Project
+## 🚀 Quick Start
 
-1. **Clone repository ini**
+### Prerequisites
+
+- Node.js 18+
+- npm atau yarn
+- Akun [Clerk](https://clerk.com/) untuk authentication
+- Akun [Supabase](https://supabase.com/) untuk database & storage
+
+### Installation
+
+1. **Clone repository**
 
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/yourusername/compressly.git
    cd compressly
    ```
 
@@ -33,52 +55,87 @@ Aplikasi ini memungkinkan pengguna mengompres gambar secara massal, mengunduh ha
    yarn install
    ```
 
-3. **Buat file environment**
+3. **Setup environment variables**
 
+   ```bash
+   cp .env.example .env
    ```
-   cp .env.example .env.local
+
+   Isi file `.env` dengan konfigurasi Anda:
+
+   ```env
+   # Clerk Authentication
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+   CLERK_SECRET_KEY=sk_test_your_secret_here
+
+   # Supabase Configuration
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
    ```
 
-   Lalu isi variabel Supabase dan Clerk sesuai kebutuhan.
+4. **Setup database**
 
-4. **Jalankan development server**
+   Jalankan SQL script di Supabase SQL Editor:
+
+   ```bash
+   # Copy isi file app/lib/database-schema.sql
+   # Paste dan jalankan di: https://supabase.com/dashboard/project/YOUR_PROJECT/sql/new
+   ```
+
+5. **Jalankan development server**
 
    ```bash
    npm run dev
-   # atau
-   yarn dev
    ```
 
-5. **Akses di browser**
-   ```
-   http://localhost:3000
-   ```
+6. **Buka aplikasi**
+
+   Akses [http://localhost:3000](http://localhost:3000) di browser Anda
 
 ---
 
-## ⚙️ Konfigurasi Environment
+## 🛠️ Tech Stack
 
-Buat file `.env.local` dan isi dengan:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-```
+| Category             | Technology                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| **Framework**        | [Next.js 15](https://nextjs.org/) (App Router)                                                   |
+| **Language**         | [TypeScript](https://www.typescriptlang.org/)                                                    |
+| **Styling**          | [Tailwind CSS](https://tailwindcss.com/)                                                         |
+| **Authentication**   | [Clerk](https://clerk.com/)                                                                      |
+| **Database**         | [Supabase](https://supabase.com/) (PostgreSQL)                                                   |
+| **Storage**          | [Supabase Storage](https://supabase.com/storage)                                                 |
+| **Image Processing** | [browser-image-compression](https://www.npmjs.com/package/browser-image-compression)             |
+| **Icons**            | [Lucide React](https://lucide.dev/)                                                              |
+| **File Handling**    | [JSZip](https://stuk.github.io/jszip/), [FileSaver.js](https://github.com/eligrey/FileSaver.js/) |
 
 ---
 
-## 🗂️ Struktur Folder Penting
+## 🗂️ Project Structure
 
 ```
-app/
-  compress/           # Halaman & komponen kompresi gambar
-  dashboard/          # Halaman dashboard user
-  components/         # Komponen UI reusable
-  lib/                # Logic Supabase, analytics, utils
-  sign-in/, sign-up/  # Halaman otentikasi
+compressly/
+├── app/
+│   ├── api/                    # API routes
+│   │   └── upload/            # Upload endpoint
+│   ├── components/            # Reusable UI components
+│   │   ├── layout/           # Header, Footer
+│   │   ├── sections/         # Landing page sections
+│   │   └── ui/               # Base UI components
+│   ├── compress/             # Image compression page
+│   ├── dashboard/            # User dashboard
+│   ├── hooks/                # Custom React hooks
+│   ├── lib/                  # Core utilities & database
+│   │   ├── analytics.ts      # Compression analytics
+│   │   ├── storage.ts        # File upload/download
+│   │   ├── supabase.ts       # Database client
+│   │   └── database-schema.sql
+│   ├── sign-in/              # Authentication pages
+│   ├── sign-up/
+│   ├── types/                # TypeScript definitions
+│   └── globals.css           # Global styles
+├── public/                   # Static assets
+└── ...config files
 ```
 
 ---
