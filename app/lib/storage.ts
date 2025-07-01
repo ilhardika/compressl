@@ -6,8 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 export async function uploadCompressedImage(file: File, userId: string) {
   // Gunakan service role key untuk upload (bypass RLS)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4cGF3ampsZnZmdmRrZ2FibXJjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTM4Njk4MCwiZXhwIjoyMDY2OTYyOTgwfQ.raX9PuvL7tAj-gYUoV2Br3XRTs65UjyA5MerbJkM9mk";
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
     console.warn("Supabase config missing");
